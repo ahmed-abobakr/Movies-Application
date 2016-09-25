@@ -187,27 +187,13 @@ public class MovieDetailsFragment extends Fragment {
                 if(checkConnectivity())
                     getTrailers();
                 return true;
-            case R.id.action_share:
-                ShareActionProvider mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
-                if(mShareActionProvider != null){
-                    if(trailersList != null)
-                    mShareActionProvider.setShareIntent(createForShareIntent(String.format("%s - %s - %s/%s", trailersList.get(0).getName())));
-                    else if(mReviewData != null)
-                        mShareActionProvider.setShareIntent(createForShareIntent(String.format("%s - %s - %s/%s", mReviewData.get(0).getContent())));
-                }
-                return true;
+
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    private Intent createForShareIntent(String shareStr){
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_TEXT, shareStr + " #Andalusia_Movies");
-        return shareIntent;
-    }
+
 
     public void onEvent(ParserJson json){
         if(json instanceof MovieReview) {
