@@ -78,11 +78,15 @@ public class Downloader extends AsyncTask<String, Void, ParserJson> {
     @Override
     protected void onPostExecute(ParserJson parserJson) {
         super.onPostExecute(parserJson);
-        if(!connectingToServer && ! errorHandlingData)
-            EventBus.getDefault().post(parserJson);
-        else if(errorHandlingData)
+        if(parserJson != null) {
+            if (!connectingToServer && !errorHandlingData)
+                EventBus.getDefault().post(parserJson);
+            else if (errorHandlingData)
+                Toast.makeText(mContext, mContext.getString(R.string.error_handling_data), Toast.LENGTH_SHORT).show();
+            else if (connectingToServer)
+                Toast.makeText(mContext, mContext.getString(R.string.error_connection_api), Toast.LENGTH_SHORT).show();
+        }else {
             Toast.makeText(mContext, mContext.getString(R.string.error_handling_data), Toast.LENGTH_SHORT).show();
-        else if(connectingToServer)
-            Toast.makeText(mContext, mContext.getString(R.string.error_connection_api), Toast.LENGTH_SHORT).show();
+        }
     }
 }

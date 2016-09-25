@@ -1,11 +1,8 @@
 package com.greek303g.movieapp;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import com.greek303g.movieapp.data.Result;
 import com.greek303g.movieapp.fragments.MovieDetailsFragment;
@@ -17,7 +14,8 @@ public class MainActivity extends AppCompatActivity implements MoviesFragment.Se
     private final String TAG = MainActivity.class.getName();
     public static final  String BASE_URL = "http://api.themoviedb.org/3/movie";
     public static final String API_KEY_PARAM = "api_key";
-    boolean mTwoPane;
+    private final String Movies_DETAILS_TAG = "movies_tag";
+    boolean mTwoPane, setDefaultMovie = false;
     Result selectedMovie;
 
 
@@ -42,24 +40,28 @@ public class MainActivity extends AppCompatActivity implements MoviesFragment.Se
             mTwoPane = false;
         }
 
-        /*if(savedInstanceState == null){
+        if(savedInstanceState == null)
+            setDefaultMovie = true;
+
+        if(savedInstanceState == null){
             getFragmentManager().beginTransaction().replace(R.id.movies_fragment, new MoviesFragment())
                     .commit();
         }else {
-            if(savedInstanceState.getString("current_fragment") != null) {
-                if (savedInstanceState.getString("current_fragment").equals("movies"))
+            MovieDetailsFragment detailsFragment = (MovieDetailsFragment) getFragmentManager().findFragmentByTag(Movies_DETAILS_TAG);
+            //if(savedInstanceState.getString("current_fragment") != null) {
+                if (detailsFragment == null)
                     getFragmentManager().beginTransaction().replace(R.id.movies_fragment, new MoviesFragment())
                             .commit();
                 else {
-                    MovieDetailsFragment detailsFragment = new MovieDetailsFragment();
-                    Bundle args = new Bundle();
-                    args.putSerializable("movie", selectedMovie);
-                    detailsFragment.setArguments(args);
-                    getFragmentManager().beginTransaction().replace(R.id.movies_fragment, detailsFragment)
+                    //MovieDetailsFragment detailsFragment = new MovieDetailsFragment();
+                    //Bundle args = new Bundle();
+                    //args.putSerializable("movie", selectedMovie);
+                    //detailsFragment.setArguments(args);
+                    getFragmentManager().beginTransaction().replace(R.id.movies_fragment, detailsFragment, Movies_DETAILS_TAG)
                             .commit();
                 }
-            }
-        }*/
+            //}
+        }
 
         if(findViewById(R.id.container1) != null){
             mTwoPane = true;
@@ -101,7 +103,8 @@ public class MainActivity extends AppCompatActivity implements MoviesFragment.Se
         selectedMovie = result;
 
         if(!mTwoPane){
-            getFragmentManager().beginTransaction().replace(R.id.movies_fragment, detailsFragment)
+
+            getFragmentManager().beginTransaction().replace(R.id.movies_fragment, detailsFragment, Movies_DETAILS_TAG)
                     .addToBackStack("Movies").commit();
         }else {
 
@@ -116,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements MoviesFragment.Se
         if(findViewById(R.id.container1) != null){
             mTwoPane = true;
 
-                if(selectedMovie != null){
+                if(selectedMovie != null && setDefaultMovie){
                     MovieDetailsFragment detailsFragment = new MovieDetailsFragment();
                     Bundle args = new Bundle();
                     args.putSerializable("movie", selectedMovie);

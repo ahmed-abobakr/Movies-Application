@@ -2,13 +2,15 @@ package com.greek303g.movieapp.fragments;
 
 import android.app.Fragment;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -29,10 +31,10 @@ import com.greek303g.movieapp.adapters.TrailersAdapter;
 import com.greek303g.movieapp.async.Downloader;
 import com.greek303g.movieapp.data.MovieReview;
 import com.greek303g.movieapp.data.MovieTrailers;
-import com.greek303g.movieapp.data.MoviesData;
 import com.greek303g.movieapp.data.ParserJson;
 import com.greek303g.movieapp.data.Result;
 import com.greek303g.movieapp.data.ReviewResult;
+import com.greek303g.movieapp.data.TrailerResult;
 import com.greek303g.movieapp.database.MoviesContract;
 import com.greek303g.movieapp.utils.Utils;
 import com.squareup.picasso.Picasso;
@@ -56,6 +58,7 @@ public class MovieDetailsFragment extends Fragment {
     ViewPager pager;
     ReviewsAdapter adapter;
     List<ReviewResult> mReviewData;
+    List<TrailerResult> trailersList;
     Button btnFav;
 
     private MovieReview mData;
@@ -69,6 +72,7 @@ public class MovieDetailsFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        setRetainInstance(true);
     }
 
     @Override
@@ -100,7 +104,9 @@ public class MovieDetailsFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        if(getArguments() != null){
+        if(savedInstanceState != null){
+            movie = (Result) savedInstanceState.getSerializable("movie");
+        }else if(getArguments() != null){
             movie = (Result) getArguments().get("movie");
         }
 
@@ -156,10 +162,11 @@ public class MovieDetailsFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+
 
             outState.putString("current_fragment", "moviesDetails");
             outState.putSerializable("movie", movie);
+        super.onSaveInstanceState(outState);
 
     }
 
@@ -180,9 +187,26 @@ public class MovieDetailsFragment extends Fragment {
                 if(checkConnectivity())
                     getTrailers();
                 return true;
+            case R.id.action_share:
+                ShareActionProvider mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
+                if(mShareActionProvider != null){
+                    if(trailersList != null)
+                    mShareActionProvider.setShareIntent(createForShareIntent(String.format("%s - %s - %s/%s", trailersList.get(0).getName())));
+                    else if(mReviewData != null)
+                        mShareActionProvider.setShareIntent(createForShareIntent(String.format("%s - %s - %s/%s", mReviewData.get(0).getContent())));
+                }
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private Intent createForShareIntent(String shareStr){
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, shareStr + " #Andalusia_Movies");
+        return shareIntent;
     }
 
     public void onEvent(ParserJson json){
@@ -199,7 +223,7 @@ public class MovieDetailsFragment extends Fragment {
         }else if(json instanceof MovieTrailers){
             pager.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
-            List trailersList = ((MovieTrailers) json).getResults();
+            trailersList = ((MovieTrailers) json).getResults();
             TrailersAdapter adapterTrailers = new TrailersAdapter(getActivity().getFragmentManager(), trailersList, getActivity());
             pager.setAdapter(adapterTrailers);
         }else  if(json instanceof Result){
